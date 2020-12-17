@@ -80,20 +80,36 @@ void bit_cyclic_lshift(gcry_mpi_t *result, const unsigned int l_bits, const unsi
 	gcry_mpi_t b = gcry_mpi_new(0);
 	a = gcry_mpi_copy(*result);
 	b = gcry_mpi_copy(*result);
-	printf("a old \n");
-	bit_printf(a, num_of_bits);
-	gcry_mpi_lshift(a, a, l_bits); // поменять с обрезкой больше 128 например 
-	gcry_mpi_rshift(b, b, num_of_bits - l_bits); // поменять с обрезкой больше 128 например
-	bit_or(result, a, b, num_of_bits);
 
-	printf("a new \n");
-	bit_printf(a, num_of_bits);
+
+	// printf("old??? \n");
+	// bit_printf(*result, num_of_bits);
+	// gcry_mpi_lshift(a, a, l_bits); // поменять с обрезкой больше 128 например 
+	bit_lshift(&a, a, l_bits, num_of_bits);
+	// printf("\na \n");
+	// bit_printf(a, num_of_bits);
+	
+	// printf("\nb \n");
+	// bit_printf(b, num_of_bit);
+	
+	gcry_mpi_rshift(b, b, (num_of_bits - l_bits)); // поменять с обрезкой больше 128 например
+	
+
+	// printf("\n bb \n");
+	// bit_printf(b, num_of_bits);
+	
+
+	bit_or(&a, a, b, num_of_bits);
+	*result = gcry_mpi_copy(a);
+	// printf("a new \n");
+	// bit_printf(a, num_of_bits);
+
 	// printf(" a дап даст ");
-	gcry_mpi_dump(a);
-	
-	
+	// gcry_mpi_dump(*result);
 
 
+
+////////////////////////////////////////////////////
 
 	// *result = a << offset | a >> (32 - offset);
 	// gcry_mpi_rshift
@@ -110,18 +126,28 @@ void round_key(gcry_mpi_t key)
 	gcry_mpi_t KL = gcry_mpi_new(0);	
 	gcry_mpi_t KR = gcry_mpi_new(0);	
 	gcry_mpi_t D1 = gcry_mpi_new(0);	
+	gcry_mpi_t D2 = gcry_mpi_new(0);	
+
 	KL = gcry_mpi_copy(key);
 	gcry_mpi_scan(&KR, GCRYMPI_FMT_HEX, "00", 0, 0);
 
-	bit_xor(&D1, KL, KR, 128); // D1 = (KL ^ KR)
-	gcry_mpi_rshift(D1, D1, 64);
-	printf("D1 = \n");
-	gcry_mpi_dump(D1);
+	bit_xor(&D1, KL, KR, 128);   // (KL ^ KR)
+	gcry_mpi_rshift(D1, D1, 64); // D1 = (KL ^ KR) >> 64	
+	printf("\n\nD1 = \n");
+	bit_xor(&D2, KL, KR, 128);   // (KL ^ KR)
+	bit_and(&D2, D2, MASK64, 128); 	// (KL ^ KR) & MASK64;
+
+
+
+	// gcry_mpi_dump(D1);
 
 
 
 
 	gcry_mpi_release(KL);
 	gcry_mpi_release(KR);
+	gcry_mpi_release(D1);
+	gcry_mpi_release(D2);
+
 }
 

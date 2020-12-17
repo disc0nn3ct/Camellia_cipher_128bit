@@ -4,7 +4,6 @@
 
 
 
-
 int main()
 {
 	printf("Test 1\n");
@@ -42,15 +41,16 @@ int main()
 	// cyclic_l_shift(&a, 1, 8);
 
 
-	bit_printf(a, 8);
+	// bit_printf(a, 8);
 	// bit_printf(b, 8);
 	// bit_or(&a, a, b, 8);
-	bit_cyclic_lshift(&b, 4, 8);
-
-	bit_printf(b, 8);
 	// bit_printf(a, 8);
-	printf("\n");
-	gcry_mpi_dump(a);
+	// bit_cyclic_lshift(&a, 4, 8);
+
+	// bit_printf(a, 8);
+	// bit_printf(a, 8);
+	// printf("\n new \n");
+	// gcry_mpi_dump(a);
 
 
 

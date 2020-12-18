@@ -37,7 +37,7 @@ int main()
 
 	// }
 
-
+F_camellia(&res, a, a );
 	// cyclic_l_shift(&a, 1, 8);
 
 

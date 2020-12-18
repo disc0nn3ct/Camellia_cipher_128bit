@@ -30,6 +30,10 @@ void bit_xor(gcry_mpi_t *result,const gcry_mpi_t a,const gcry_mpi_t b,const unsi
 		{
 			gcry_mpi_set_bit(*result, i);
 		}
+		else
+		{
+			gcry_mpi_clear_bit(*result, i);
+		}
 	}
 
 // gcry_mpi_dump(*result);
@@ -46,13 +50,19 @@ void bit_or(gcry_mpi_t *result,const gcry_mpi_t a,const gcry_mpi_t b,const unsig
 	}
 }
 
-void bit_and(gcry_mpi_t *result,const gcry_mpi_t a,const gcry_mpi_t b,const unsigned int num_of_bits) // да 
+void bit_and(gcry_mpi_t *result, const gcry_mpi_t a, const gcry_mpi_t b, const unsigned int num_of_bits) // да 
 {
 	for(int i=0; i < num_of_bits; i++)
 	{
-		if(gcry_mpi_test_bit(a, i) == 1 && gcry_mpi_test_bit(b, i) == 1)
+		
+		if( (gcry_mpi_test_bit(a, i) == 1) && (gcry_mpi_test_bit(b, i) == 1))
 		{
+			// printf("i = %d\n", i);
 			gcry_mpi_set_bit(*result, i);
+		}
+		else
+		{
+			gcry_mpi_clear_bit(*result, i);
 		}
 	}
 }
@@ -118,28 +128,61 @@ void bit_cyclic_lshift(gcry_mpi_t *result, const unsigned int l_bits, const unsi
 	gcry_mpi_release(b);
 }
 
+void F_camellia(gcry_mpi_t *result, gcry_mpi_t F_IN, gcry_mpi_t KE)
+{
+
+
+	printf(" looooKKK %0lx\n", SIGMA[0]);
+
+
+
+}
+
+
+
 
 
 
 void round_key(gcry_mpi_t key)
 {
+	const long long SIGMA[6] =
+	{
+		0xA09E667F3BCC908B, 0xB67AE8584CAA73B2, 0xC6EF372FE94F82BE, 0x54FF53A5F1D36F1C, 0x10E527FADE682D1D, 0xB05688C2B3E6C1FD
+	};
+
 	gcry_mpi_t KL = gcry_mpi_new(0);	
 	gcry_mpi_t KR = gcry_mpi_new(0);	
 	gcry_mpi_t D1 = gcry_mpi_new(0);	
 	gcry_mpi_t D2 = gcry_mpi_new(0);	
+	gcry_mpi_t MASK64 = gcry_mpi_new(0);
 
 	KL = gcry_mpi_copy(key);
 	gcry_mpi_scan(&KR, GCRYMPI_FMT_HEX, "00", 0, 0);
+	gcry_mpi_scan(&MASK64, GCRYMPI_FMT_HEX, "ffffffffffffffff", 0, 0);
+
+
 
 	bit_xor(&D1, KL, KR, 128);   // (KL ^ KR)
+	
+
 	gcry_mpi_rshift(D1, D1, 64); // D1 = (KL ^ KR) >> 64	
-	printf("\n\nD1 = \n");
+	
+
+
+	gcry_mpi_dump(D1);
+	printf("\n");
+
+	printf("\n\nD2 = \n");
 	bit_xor(&D2, KL, KR, 128);   // (KL ^ KR)
+	gcry_mpi_dump(D2);
+	printf("\n");
 	bit_and(&D2, D2, MASK64, 128); 	// (KL ^ KR) & MASK64;
+	printf("\n");
+	gcry_mpi_dump(D2);
+	printf("\n");
 
 
-
-	// gcry_mpi_dump(D1);
+	// gcry_mpi_dump(D2);
 
 
 
@@ -148,6 +191,7 @@ void round_key(gcry_mpi_t key)
 	gcry_mpi_release(KR);
 	gcry_mpi_release(D1);
 	gcry_mpi_release(D2);
+	gcry_mpi_release(MASK64);
 
 }
 

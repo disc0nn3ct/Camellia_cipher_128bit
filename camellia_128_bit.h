@@ -24,6 +24,9 @@ void bit_lshift(gcry_mpi_t *result, const gcry_mpi_t a, const unsigned int l_bit
 void bit_cyclic_lshift(gcry_mpi_t *result, const unsigned int l_bits, const unsigned int num_of_bits);
 
 
+void F_camellia(gcry_mpi_t *result, gcry_mpi_t F_IN, gcry_mpi_t KE);
+
+
 void round_key(gcry_mpi_t key);
 
 

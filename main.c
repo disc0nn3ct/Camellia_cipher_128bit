@@ -37,7 +37,46 @@ int main()
 
 	// }
 
-F_camellia(&res, a, a );
+
+// const long long SIGMA[6] =
+// {
+// 	0xA09E667F3BCC908B, 0xB67AE8584CAA73B2, 0xC6EF372FE94F82BE, 0x54FF53A5F1D36F1C, 0x10E527FADE682D1D, 0xB05688C2B3E6C1FD
+// };
+
+// char SIGMA[6][64];
+// strcpy(SIGMA[0], "A09E667F3BCC908B");
+
+
+
+
+
+
+// SIGMA[0] = "A09E667F3BCC908B";
+
+// printf("SIGMA\n%s\n", SIGMA[0]);
+
+
+
+
+// gcry_mpi_t SIGMA[6];
+// SIGMA[0] = gcry_mpi_new(0);
+
+
+// F_camellia(&res, a, a );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	// cyclic_l_shift(&a, 1, 8);
 
 
@@ -51,6 +90,21 @@ F_camellia(&res, a, a );
 	// bit_printf(a, 8);
 	// printf("\n new \n");
 	// gcry_mpi_dump(a);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

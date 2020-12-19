@@ -57,6 +57,8 @@ void bit_and(gcry_mpi_t *result, const gcry_mpi_t a, const gcry_mpi_t b, const u
 		
 		if( (gcry_mpi_test_bit(a, i) == 1) && (gcry_mpi_test_bit(b, i) == 1))
 		{
+				if(gcry_mpi_cmp_ui(b, 0xff) == 1)
+					printf("u");
 			// printf("i = %d\n", i);
 			gcry_mpi_set_bit(*result, i);
 		}
@@ -64,7 +66,7 @@ void bit_and(gcry_mpi_t *result, const gcry_mpi_t a, const gcry_mpi_t b, const u
 		{
 			gcry_mpi_clear_bit(*result, i);
 		}
-	}
+	}	
 }
 
 // битовый сдвиг влево
@@ -134,9 +136,67 @@ void bit_cyclic_lshift(gcry_mpi_t *result, const unsigned int l_bits, const unsi
 	gcry_mpi_release(b);
 }
 
+// просто возведение в степень 
+int Power(int base, int pow){ 
+   if (pow == 0) {return 1;}
+    if (pow < 0)   {return 0;}  
+
+    int result=1;
+         for(int i=0;i<pow;i++){
+               result *= base;
+         }
+    return result;
+}
+
+// из mpi в uint (для поиска в массиве) 
+unsigned int from_mp_to_uint(gcry_mpi_t num)
+{
+	unsigned int i=0;
+	for(int l=0; l < gcry_mpi_get_nbits(num); l++)
+	{
+		if(gcry_mpi_test_bit(num, l) == 1 )
+		{
+			i+= Power(2, l);
+		}
+	}
+	return 	i;
+}
+
+const char *SBOX[] = {"70", "82", "2c", "ec", "b3", "27", "c0", "e5", "e4", "85", "57", "35", "ea", "0c", "ae", "41",
+                                  "23", "ef", "6b", "93", "45", "19", "a5", "21", "ed", "0e", "4f", "4e", "1d", "65", "92", "bd",
+                                  "86", "b8", "af", "8f", "7c", "eb", "1f", "ce", "3e", "30", "dc", "5f", "5e", "c5", "0b", "1a",
+                                  "a6", "e1", "39", "ca", "d5", "47", "5d", "3d", "d9", "01", "5a", "d6", "51", "56", "6c", "4d",
+                                  "8b", "0d", "9a", "66", "fb", "cc", "b0", "2d", "74", "12", "2b", "20", "f0", "b1", "84", "99",
+                                  "df", "4c", "cb", "c2", "34", "7e", "76", "05", "6d", "b7", "a9", "31", "d1", "17", "04", "d7",
+                                  "14", "58", "3a", "61", "de", "1b", "11", "1c", "32", "0f", "9c", "16", "53", "18", "f2", "22",
+                                  "fe", "44", "cf", "b2", "c3", "b5", "7a", "91", "24", "08", "e8", "a8", "60", "fc", "69", "50",
+                                  "aa", "d0", "a0", "7d", "a1", "89", "62", "97", "54", "5b", "1e", "95", "e0", "ff", "64", "d2",
+                                  "10", "c4", "00", "48", "a3", "f7", "75", "db", "8a", "03", "e6", "da", "09", "3f", "dd", "94",
+                                  "87", "5c", "83", "02", "cd", "4a", "90", "33", "73", "67", "f6", "f3", "9d", "7f", "bf", "e2",
+                                  "52", "9b", "d8", "26", "c8", "37", "c6", "3b", "81", "96", "6f", "4b", "13", "be", "63", "2e",
+                                  "e9", "79", "a7", "8c", "9f", "6e", "bc", "8e", "29", "f5", "f9", "b6", "2f", "fd", "b4", "59",
+                                  "78", "98", "06", "6a", "e7", "46", "71", "ba", "d4", "25", "ab", "42", "88", "a2", "8d", "fa",
+                                  "72", "07", "b9", "55", "f8", "ee", "ac", "0a", "36", "49", "2a", "68", "3c", "38", "f1", "a4",
+                                  "40", "28", "d3", "7b", "bb", "c9", "43", "c1", "15", "e3", "ad", "f4", "77", "c7", "80", "9e"};
+
+
+// SBOX1 
+void SBOX1(gcry_mpi_t *result, gcry_mpi_t num)
+{
+	uint numm = from_mp_to_uint(num);
+	gcry_mpi_scan(result, GCRYMPI_FMT_HEX, SBOX[numm], 0, 0);
+	// printf("=============================%s\n", SBOX[numm]);
+	// gcry_mpi_dump(*result);
+}
+
+
+
+
+
+// F функция 
 void F_camellia(gcry_mpi_t *result, gcry_mpi_t F_IN, gcry_mpi_t KE)
 {
-if((gcry_mpi_get_nbits(F_IN) > 64) || (gcry_mpi_get_nbits(KE) > 64) )
+if((gcry_mpi_get_nbits(F_IN) > 64) || (gcry_mpi_get_nbits(KE) > 64))
 {
 	perror("F_IN or KE to big : ");
 }
@@ -171,17 +231,28 @@ gcry_mpi_rshift(t[5], x, 16); // t6 = (x >> 16)
 bit_and(&t[5], t[5], MASK8, 8); // t6 = (x >> 16) & MASK8;
 gcry_mpi_rshift(t[6], x, 8); // t7 = (x >>  8)
 bit_and(&t[6], t[6], MASK8, 8); // t7 = (x >>  8) & MASK8;
-bit_and(&t[7], t[7], MASK8, 8); // t8 =  x & MASK8;
-
-
-
+bit_and(&t[7], x, MASK8, 8); // t8 =  x & MASK8;
 
 
 
 
 printf("lol \n");
-gcry_mpi_dump(t[0]);
+gcry_mpi_dump(t[6]);
 printf("\n lol\n");
+
+SBOX1(&t[0], t[0]);	// t1 = SBOX1[t1];
+// SBOX1(&t[1], t[1]);	// t2 = SBOX2[t2];
+// SBOX1(&t[2], t[2]);	// t3 = SBOX3[t3];
+// SBOX1(&t[3], t[3]);	// t4 = SBOX4[t4];
+// SBOX1(&t[4], t[4]);	// t5 = SBOX2[t5];
+// SBOX1(&t[5], t[5]);	// t6 = SBOX3[t6];
+// SBOX1(&t[6], t[6]);	// t7 = SBOX4[t7];
+SBOX1(&t[7], t[7]);	// t8 = SBOX1[t8];
+
+
+
+
+
 // gcry_mpi_rshift(t[2], x, 56); 
 
 
@@ -206,6 +277,7 @@ gcry_mpi_release(x);
 gcry_mpi_release(MASK8);
 
 }
+
 
 
 

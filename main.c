@@ -48,8 +48,13 @@ int main()
 
 
 
+// printf("============================%d\n", from_mp_to_uint(a));
 
+// SBOX1(&a, a);
 
+// printf("resuuuuuuu\n");
+// gcry_mpi_dump(a);
+// printf("\nresuuuuuuu\n");
 
 // SIGMA[0] = "A09E667F3BCC908B";
 

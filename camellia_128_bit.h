@@ -36,6 +36,10 @@ unsigned int from_mp_to_uint(gcry_mpi_t num); // из 16 ричной в 10 ри
 void SBOX1(gcry_mpi_t *result, gcry_mpi_t num);
 
 
+void SBOX2(gcry_mpi_t *result, gcry_mpi_t num);
+
+
+
 void F_camellia(gcry_mpi_t *result, gcry_mpi_t F_IN, gcry_mpi_t KE);
 
 

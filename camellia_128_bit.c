@@ -41,25 +41,29 @@ void bit_xor(gcry_mpi_t *result,const gcry_mpi_t a,const gcry_mpi_t b,const unsi
 
 void bit_or(gcry_mpi_t *result,const gcry_mpi_t a,const gcry_mpi_t b,const unsigned int num_of_bits) // да 
 {
+	gcry_mpi_scan(result, GCRYMPI_FMT_HEX, "00", 0, 0);
+
 	for(int i=0; i < num_of_bits; i++)
 	{
 		if(gcry_mpi_test_bit(a, i) == 1 || gcry_mpi_test_bit(b, i) == 1)
 		{
 			gcry_mpi_set_bit(*result, i);
 		}
+		else
+			gcry_mpi_clear_bit(*result, i);
+
 	}
 }
 
 void bit_and(gcry_mpi_t *result, const gcry_mpi_t a, const gcry_mpi_t b, const unsigned int num_of_bits) // да 
 {
+	gcry_mpi_scan(result, GCRYMPI_FMT_HEX, "00", 0, 0);
 	for(int i=0; i < num_of_bits; i++)
 	{
-		
+
 		if( (gcry_mpi_test_bit(a, i) == 1) && (gcry_mpi_test_bit(b, i) == 1))
 		{
-				if(gcry_mpi_cmp_ui(b, 0xff) == 1)
-					printf("u");
-			// printf("i = %d\n", i);
+
 			gcry_mpi_set_bit(*result, i);
 		}
 		else
@@ -85,9 +89,6 @@ void bit_lshift(gcry_mpi_t *result, const gcry_mpi_t a, const unsigned int l_bit
 	}
 	gcry_mpi_release(b);
 }
-
-
-
 
 
 
@@ -185,17 +186,42 @@ void SBOX1(gcry_mpi_t *result, gcry_mpi_t num)
 {
 	uint numm = from_mp_to_uint(num);
 	gcry_mpi_scan(result, GCRYMPI_FMT_HEX, SBOX[numm], 0, 0);
-	// printf("=============================%s\n", SBOX[numm]);
-	// gcry_mpi_dump(*result);
 }
 
+// SBOX2[x] = SBOX1[x] <<< 1;
+void SBOX2(gcry_mpi_t *result, gcry_mpi_t num)
+{
+	// printf("<<<<<<<<<<<<\n");
+	// gcry_mpi_dump(num);
+	// printf("\n>>>>>>>>>>>>\n");
+	SBOX1(result, num); 
 
+	// gcry_mpi_dump(*result);
+	bit_cyclic_lshift(result, 1, 8); 
+}
+	
+// SBOX3[x] = SBOX1[x] <<< 7;
+void SBOX3(gcry_mpi_t *result, gcry_mpi_t num)
+{
+	SBOX1(result, num);
+	bit_cyclic_lshift(result, 7, 8); 
+}
+
+// SBOX4[x] = SBOX1[x <<< 1];
+void SBOX4(gcry_mpi_t *result, gcry_mpi_t num)
+{
+	bit_cyclic_lshift(&num, 1, 8); // проблемное место? 
+	SBOX1(result, num);
+}
 
 
 
 // F функция 
 void F_camellia(gcry_mpi_t *result, gcry_mpi_t F_IN, gcry_mpi_t KE)
 {
+
+gcry_mpi_scan(result, GCRYMPI_FMT_HEX, "00", 0, 0);
+
 if((gcry_mpi_get_nbits(F_IN) > 64) || (gcry_mpi_get_nbits(KE) > 64))
 {
 	perror("F_IN or KE to big : ");
@@ -217,11 +243,11 @@ for(int i=0; i<8; i++)
 	y[i] = gcry_mpi_new(8);
 }
 
-bit_xor(&x, F_IN, KE, 64);  // x  = F_IN ^ KE;
+bit_xor(&x, F_IN, KE, 64);  	// x  = F_IN ^ KE;
 gcry_mpi_rshift(t[0], x, 56);   // t1 =  x >> 56;
 gcry_mpi_rshift(t[1], x, 48);   // t2 = (x >> 48)
-bit_and(&t[1], t[1], MASK8, 8); 	// t2 = (x >> 48) & MASK8;
-gcry_mpi_rshift(t[2], x, 40); // t3 = (x >> 40) 
+bit_and(&t[1], t[1], MASK8, 8); // t2 = (x >> 48) & MASK8;
+gcry_mpi_rshift(t[2], x, 40);	// t3 = (x >> 40) 
 bit_and(&t[2], t[2], MASK8, 8); // t3 = (x >> 40) & MASK8;
 gcry_mpi_rshift(t[3], x, 32); // t4 = (x >> 32)
 bit_and(&t[3], t[3], MASK8, 8); // t4 = (x >> 32) & MASK8;
@@ -234,39 +260,94 @@ bit_and(&t[6], t[6], MASK8, 8); // t7 = (x >>  8) & MASK8;
 bit_and(&t[7], x, MASK8, 8); // t8 =  x & MASK8;
 
 
-
-
-printf("lol \n");
-gcry_mpi_dump(t[6]);
-printf("\n lol\n");
-
 SBOX1(&t[0], t[0]);	// t1 = SBOX1[t1];
-// SBOX1(&t[1], t[1]);	// t2 = SBOX2[t2];
-// SBOX1(&t[2], t[2]);	// t3 = SBOX3[t3];
-// SBOX1(&t[3], t[3]);	// t4 = SBOX4[t4];
-// SBOX1(&t[4], t[4]);	// t5 = SBOX2[t5];
-// SBOX1(&t[5], t[5]);	// t6 = SBOX3[t6];
-// SBOX1(&t[6], t[6]);	// t7 = SBOX4[t7];
+SBOX2(&t[1], t[1]);	// t2 = SBOX2[t2];
+SBOX3(&t[2], t[2]);	// t3 = SBOX3[t3];
+SBOX4(&t[3], t[3]);	// t4 = SBOX4[t4];
+SBOX2(&t[4], t[4]);	// t5 = SBOX2[t5];
+SBOX3(&t[5], t[5]);	// t6 = SBOX3[t6];
+SBOX4(&t[6], t[6]);	// t7 = SBOX4[t7];
 SBOX1(&t[7], t[7]);	// t8 = SBOX1[t8];
 
 
+// y1 = t1 ^ t3 ^ t4 ^ t6 ^ t7 ^ t8;
+bit_xor(&y[0], t[0], t[2], 8);   
+bit_xor(&y[0], y[0], t[3], 8);
+bit_xor(&y[0], y[0], t[5], 8);
+bit_xor(&y[0], y[0], t[6], 8);
+bit_xor(&y[0], y[0], t[7], 8);
+
+// y2 = t1 ^ t2 ^ t4 ^ t5 ^ t7 ^ t8;
+bit_xor(&y[1], t[0], t[1], 8);   
+bit_xor(&y[1], y[1], t[3], 8);
+bit_xor(&y[1], y[1], t[4], 8);
+bit_xor(&y[1], y[1], t[6], 8);
+bit_xor(&y[1], y[1], t[7], 8);
 
 
+// y3 = t1 ^ t2 ^ t3 ^ t5 ^ t6 ^ t8;
+bit_xor(&y[2], t[0], t[1], 8);   
+bit_xor(&y[2], y[2], t[2], 8);
+bit_xor(&y[2], y[2], t[4], 8);
+bit_xor(&y[2], y[2], t[5], 8);
+bit_xor(&y[2], y[2], t[7], 8);
 
-// gcry_mpi_rshift(t[2], x, 56); 
+// y4 = t2 ^ t3 ^ t4 ^ t5 ^ t6 ^ t7;
+bit_xor(&y[3], t[1], t[2], 8);   
+bit_xor(&y[3], y[3], t[3], 8);
+bit_xor(&y[3], y[3], t[4], 8);
+bit_xor(&y[3], y[3], t[5], 8);
+bit_xor(&y[3], y[3], t[6], 8);
 
 
-// t[1] = //
+// y5 = t1 ^ t2 ^ t6 ^ t7 ^ t8;
+bit_xor(&y[4], t[0], t[1], 8);   
+bit_xor(&y[4], y[4], t[5], 8);
+bit_xor(&y[4], y[4], t[6], 8);
+bit_xor(&y[4], y[4], t[7], 8);
+
+// y6 = t2 ^ t3 ^ t5 ^ t7 ^ t8;
+bit_xor(&y[5], t[1], t[2], 8);   
+bit_xor(&y[5], y[5], t[4], 8);
+bit_xor(&y[5], y[5], t[6], 8);
+bit_xor(&y[5], y[5], t[7], 8);
+
+// y7 = t3 ^ t4 ^ t5 ^ t6 ^ t8;
+bit_xor(&y[6], t[2], t[3], 8);   
+bit_xor(&y[6], y[6], t[4], 8);
+bit_xor(&y[6], y[6], t[5], 8);
+bit_xor(&y[6], y[6], t[7], 8);
+
+// y8 = t1 ^ t4 ^ t5 ^ t6 ^ t7;
+bit_xor(&y[7], t[0], t[3], 8);   
+bit_xor(&y[7], y[7], t[4], 8);
+bit_xor(&y[7], y[7], t[5], 8);
+bit_xor(&y[7], y[7], t[6], 8);
 
 
-// t[0] =  // t1 = x >> 56
+// F_OUT = (y1 << 56) | (y2 << 48) | (y3 << 40) | (y4 << 32)
+// | (y5 << 24) | (y6 << 16) | (y7 <<  8) | y8;
+// return FO_OUT;
+
+bit_lshift(&y[0], y[0], 56, 64);
+bit_lshift(&y[1], y[1], 48, 64);
+bit_lshift(&y[2], y[2], 40, 64);
+bit_lshift(&y[3], y[3], 32, 64);
+bit_lshift(&y[4], y[4], 24, 64);
+bit_lshift(&y[5], y[5], 16, 64);
+bit_lshift(&y[6], y[6], 8, 64);
+bit_lshift(&y[7], y[7], 0, 64);
 
 
+bit_or(&x, y[0], y[1], 64);
+bit_or(&x, x, y[2], 64);
+bit_or(&x, x, y[3], 64);
+bit_or(&x, x, y[4], 64);
+bit_or(&x, x, y[5], 64);
+bit_or(&x, x, y[6], 64);
+bit_or(&x, x, y[7], 64);
 
-
-
-
-
+*result = gcry_mpi_copy(x);
 
 for(int i=0; i<8; i++)
 {
@@ -277,8 +358,6 @@ gcry_mpi_release(x);
 gcry_mpi_release(MASK8);
 
 }
-
-
 
 
 
@@ -313,9 +392,6 @@ void round_key(gcry_mpi_t key)
 
 
 
-
-
-
 	KL = gcry_mpi_copy(key);
 	gcry_mpi_scan(&KR, GCRYMPI_FMT_HEX, "00", 0, 0);
 	gcry_mpi_scan(&MASK64, GCRYMPI_FMT_HEX, "ffffffffffffffff", 0, 0);
@@ -324,26 +400,25 @@ void round_key(gcry_mpi_t key)
 
 	bit_xor(&D1, KL, KR, 128);   // (KL ^ KR)
 	
-
 	gcry_mpi_rshift(D1, D1, 64); // D1 = (KL ^ KR) >> 64	
+	bit_xor(&D2, KL, KR, 128);   // (KL ^ KR)
+	// gcry_mpi_dump(D2);
+	// printf("\n");
+	bit_and(&D2, D2, MASK64, 128); 	// (KL ^ KR) & MASK64;
+
+	F_camellia(&buf1, D1, SIGMA[0]); // F(D1, Sigma1)
+	bit_xor(&D2, D2, buf1, 64); // D2 = D2 ^ F(D1, Sigma1);
+	F_camellia(&buf1, D2, SIGMA[1]); // F(D2, Sigma2);
+	bit_xor(&D1, D2, buf1, 64); //    D1 = D1 ^ F(D2, Sigma2);
+	
+
 	
 
 
-	gcry_mpi_dump(D1);
-	printf("\n");
 
-	printf("\n\nD2 = \n");
-	bit_xor(&D2, KL, KR, 128);   // (KL ^ KR)
+	printf("\n");
 	gcry_mpi_dump(D2);
 	printf("\n");
-	bit_and(&D2, D2, MASK64, 128); 	// (KL ^ KR) & MASK64;
-
-	F_camellia(&buf1, D1, SIGMA[0]);
-
-
-	// printf("\n");
-	// gcry_mpi_dump(D2);
-	// printf("\n");
 
 
 	// gcry_mpi_dump(D2);

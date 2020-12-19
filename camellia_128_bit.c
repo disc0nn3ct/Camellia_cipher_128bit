@@ -1,5 +1,5 @@
 #include "camellia_128_bit.h"
-
+// RFC3713
 
 void bit_printf(gcry_mpi_t a, unsigned int num_of_bits)
 {
@@ -372,7 +372,8 @@ void round_key(gcry_mpi_t key)
 	gcry_mpi_t buf1 = gcry_mpi_new(0);	
 
 	gcry_mpi_t KL = gcry_mpi_new(0);	
-	gcry_mpi_t KR = gcry_mpi_new(0);	
+	gcry_mpi_t KR = gcry_mpi_new(0);
+	gcry_mpi_t KA = gcry_mpi_new(0);	
 	gcry_mpi_t D1 = gcry_mpi_new(0);	
 	gcry_mpi_t D2 = gcry_mpi_new(0);	
 	gcry_mpi_t MASK64 = gcry_mpi_new(0);
@@ -399,26 +400,48 @@ void round_key(gcry_mpi_t key)
 
 
 	bit_xor(&D1, KL, KR, 128);   // (KL ^ KR)
-	
-	gcry_mpi_rshift(D1, D1, 64); // D1 = (KL ^ KR) >> 64	
-	bit_xor(&D2, KL, KR, 128);   // (KL ^ KR)
-	// gcry_mpi_dump(D2);
-	// printf("\n");
-	bit_and(&D2, D2, MASK64, 128); 	// (KL ^ KR) & MASK64;
-
+	gcry_mpi_rshift(D1, D1, 64); // D1 = (KL ^ KR) >> 64
+	bit_xor(&D2, KL, KR, 64);   // (KL ^ KR)
+	bit_and(&D2, D2, MASK64, 64); 	// (KL ^ KR) & MASK64;
 	F_camellia(&buf1, D1, SIGMA[0]); // F(D1, Sigma1)
 	bit_xor(&D2, D2, buf1, 64); // D2 = D2 ^ F(D1, Sigma1);
 	F_camellia(&buf1, D2, SIGMA[1]); // F(D2, Sigma2);
-	bit_xor(&D1, D2, buf1, 64); //    D1 = D1 ^ F(D2, Sigma2);
-	
+	bit_xor(&D1, D1, buf1, 64); //    D1 = D1 ^ F(D2, Sigma2);
+	gcry_mpi_rshift(buf1, KL, 64);	 // (KL >> 64)
+	bit_xor(&D1, D1, buf1, 64);	// D1 = D1 ^ (KL >> 64);
+	bit_and(&buf1, KL, MASK64, 64); 	// (KL & MASK64)
+	bit_xor(&D2, D2, buf1, 64);  // D2 = D2 ^ (KL & MASK64);
+	F_camellia(&buf1, D1, SIGMA[2]); // F(D1, Sigma3);
+	bit_xor(&D2, D2, buf1, 64); // D2 = D2 ^ F(D1, Sigma3);
+	F_camellia(&buf1, D2, SIGMA[3]); // F(D2, Sigma4);
+	bit_xor(&D1, D1, buf1, 64); // D1 = D1 ^ F(D2, Sigma4);
+	bit_lshift(&buf1, D1, 64, 128); // (D1 << 64)
+	bit_or(&KA, buf1, D2, 128); // KA = (D1 << 64) | D2;
+
+	// теперь подключи
 
 	
 
 
 
+
+
+
+
+
+
 	printf("\n");
-	gcry_mpi_dump(D2);
+	gcry_mpi_dump(KA);
 	printf("\n");
+
+
+
+// D2 = D2 ^ (KL & MASK64);
+// void bit_and(gcry_mpi_t *result, const gcry_mpi_t a, const gcry_mpi_t b, const unsigned int num_of_bits) // да 
+// void bit_lshift(gcry_mpi_t *result, const gcry_mpi_t a, const unsigned int l_bits, const unsigned int num_of_bits)
+// bit_or(&x, x, y[3], 64);
+
+
 
 
 	// gcry_mpi_dump(D2);
@@ -432,6 +455,7 @@ void round_key(gcry_mpi_t key)
 	}
 
 	gcry_mpi_release(KL);
+	gcry_mpi_release(KA);
 	gcry_mpi_release(KR);
 	gcry_mpi_release(D1);
 	gcry_mpi_release(D2);

@@ -103,6 +103,11 @@ int main()
 
 
 
+gcry_mpi_t keys_for_round[26];
+for(int i=0; i<26; i++)
+{
+	keys_for_round[i] = gcry_mpi_new(0);
+}
 
 
 
@@ -111,9 +116,7 @@ int main()
 
 
 
-
-
-	round_key(key_1_128);
+	round_key(key_1_128, keys_for_round);
 
 
 

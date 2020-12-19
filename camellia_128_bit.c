@@ -93,12 +93,14 @@ void bit_lshift(gcry_mpi_t *result, const gcry_mpi_t a, const unsigned int l_bit
 
 
 
-void bit_cyclic_lshift(gcry_mpi_t *result, const unsigned int l_bits, const unsigned int num_of_bits)
+void bit_cyclic_lshift(gcry_mpi_t *result, gcry_mpi_t in,const unsigned int l_bits, const unsigned int num_of_bits)
+{
+if(l_bits != 0 )
 {
 	gcry_mpi_t a = gcry_mpi_new(0);
 	gcry_mpi_t b = gcry_mpi_new(0);
-	a = gcry_mpi_copy(*result);
-	b = gcry_mpi_copy(*result);
+	a = gcry_mpi_copy(in);
+	b = gcry_mpi_copy(in);
 
 
 	// printf("old??? \n");
@@ -135,6 +137,12 @@ void bit_cyclic_lshift(gcry_mpi_t *result, const unsigned int l_bits, const unsi
 
 	gcry_mpi_release(a);
 	gcry_mpi_release(b);
+}
+else
+{
+	*result = gcry_mpi_copy(in);
+}
+
 }
 
 // просто возведение в степень 
@@ -197,20 +205,20 @@ void SBOX2(gcry_mpi_t *result, gcry_mpi_t num)
 	SBOX1(result, num); 
 
 	// gcry_mpi_dump(*result);
-	bit_cyclic_lshift(result, 1, 8); 
+	bit_cyclic_lshift(result, *result, 1, 8); 
 }
 	
 // SBOX3[x] = SBOX1[x] <<< 7;
 void SBOX3(gcry_mpi_t *result, gcry_mpi_t num)
 {
 	SBOX1(result, num);
-	bit_cyclic_lshift(result, 7, 8); 
+	bit_cyclic_lshift(result, *result, 7, 8); 
 }
 
 // SBOX4[x] = SBOX1[x <<< 1];
 void SBOX4(gcry_mpi_t *result, gcry_mpi_t num)
 {
-	bit_cyclic_lshift(&num, 1, 8); // проблемное место? 
+	bit_cyclic_lshift(&num, num, 1, 8); // проблемное место? 
 	SBOX1(result, num);
 }
 
@@ -268,7 +276,6 @@ SBOX2(&t[4], t[4]);	// t5 = SBOX2[t5];
 SBOX3(&t[5], t[5]);	// t6 = SBOX3[t6];
 SBOX4(&t[6], t[6]);	// t7 = SBOX4[t7];
 SBOX1(&t[7], t[7]);	// t8 = SBOX1[t8];
-
 
 // y1 = t1 ^ t3 ^ t4 ^ t6 ^ t7 ^ t8;
 bit_xor(&y[0], t[0], t[2], 8);   
@@ -420,55 +427,87 @@ void round_key(gcry_mpi_t key, gcry_mpi_t end_round_key[])
 	// теперь подключи
 
 	bit_cyclic_lshift(&end_round_key[0], KL, 0, 64); // (KL <<<  0)
-	gcry_mpi_rshift(end_round_key[0], end_round_key[0],64); // kw1 = (KL <<<   0) >> 64;
+	gcry_mpi_rshift(end_round_key[0], end_round_key[0], 64); // kw1 = (KL <<<   0) >> 64;
 
 	bit_cyclic_lshift(&end_round_key[1], KL, 0, 64); // (KL <<<  0)
 	bit_and(&end_round_key[1], end_round_key[1], MASK64, 64); // kw2 = (KL <<<   0) & MASK64;
 
-	bit_cyclic_lshift(&end_round_key[2], KA, 0, 64); // (KA <<<  0)
+	bit_cyclic_lshift(&end_round_key[2], KA, 0, 128); // (KA <<<  0)
 	gcry_mpi_rshift(end_round_key[2], end_round_key[2], 64); // k1  = (KA <<<   0) >> 64;
 
+	bit_cyclic_lshift(&end_round_key[3], KA, 0, 128); // (KA <<<  0)
+	bit_and(&end_round_key[3], end_round_key[3], MASK64, 128);  //  k2  = (KA <<<   0) & MASK64;
+
+	bit_cyclic_lshift(&end_round_key[4], KL, 15, 128); // (KL <<<  15)
+	gcry_mpi_rshift(end_round_key[4], end_round_key[4], 64); //  k3  = (KL <<<  15) >> 64;
+
+	bit_cyclic_lshift(&end_round_key[5], KL, 15, 128);  // (KL <<<  15)
+	bit_and(&end_round_key[5], end_round_key[5], MASK64, 128); // k4  = (KL <<<  15) & MASK64;
+
+	bit_cyclic_lshift(&end_round_key[6], KA, 15, 128); // (KA <<<  15)
+    gcry_mpi_rshift(end_round_key[6], end_round_key[6], 64); // k5  = (KA <<<  15) >> 64;
+
+    bit_cyclic_lshift(&end_round_key[7], KA, 15, 128); // (KA <<<  15)
+    bit_and(&end_round_key[7], end_round_key[7], MASK64, 128); //  k6  = (KA <<<  15) & MASK64;
+
+    bit_cyclic_lshift(&end_round_key[8], KA, 30, 128); // (KA <<<  30)
+    gcry_mpi_rshift(end_round_key[8], end_round_key[8], 64); //  ke1 = (KA <<<  30) >> 64;
+
+    bit_cyclic_lshift(&end_round_key[9], KA, 30, 128); // (KA <<<  30)
+    bit_and(&end_round_key[9], end_round_key[9], MASK64, 128); //  ke2 = (KA <<<  30) & MASK64;
+
+    bit_cyclic_lshift(&end_round_key[10], KL, 45, 128); // (KL <<<  45)
+    gcry_mpi_rshift(end_round_key[10], end_round_key[10], 64); //  k7  = (KL <<<  45) >> 64;
+
+    bit_cyclic_lshift(&end_round_key[11], KL, 45, 128);         // (KL <<<  45)
+    bit_and(&end_round_key[11], end_round_key[11], MASK64, 128); //  k8  = (KL <<<  45) & MASK64;
+
+    bit_cyclic_lshift(&end_round_key[12], KA, 45, 128); // (KA <<<  45)
+    gcry_mpi_rshift(end_round_key[12], end_round_key[12], 64); // k9  = (KA <<<  45) >> 64;
+
+    bit_cyclic_lshift(&end_round_key[13], KL, 60, 128); // (KL <<<  60)
+    bit_and(&end_round_key[13], end_round_key[13], MASK64, 64); // k10 = (KL <<<  60) & MASK64;
+
+    bit_cyclic_lshift(&end_round_key[14], KA, 60, 128); // (KA <<<  60)
+	gcry_mpi_rshift(end_round_key[14], end_round_key[14], 64); // k11 = (KA <<<  60) >> 64;
+
+	bit_cyclic_lshift(&end_round_key[15], KA, 60, 128); // (KA <<<  60)
+	bit_and(&end_round_key[15], end_round_key[15], MASK64, 128); // k12 = (KA <<<  60) & MASK64;
+
+	bit_cyclic_lshift(&end_round_key[16], KL, 77, 128);  // (KL <<<  77)
+	gcry_mpi_rshift(end_round_key[16], end_round_key[16], 64);//  ke3 = (KL <<<  77) >> 64;
+
+	bit_cyclic_lshift(&end_round_key[17], KL, 77, 128); // (KL <<<  77)
+	bit_and(&end_round_key[17], end_round_key[17], MASK64, 128);  //  ke4 = (KL <<<  77) & MASK64;
+
+	bit_cyclic_lshift(&end_round_key[18], KL, 94, 128); // (KL <<<  94)
+	gcry_mpi_rshift(end_round_key[18], end_round_key[18], 64);//  k13 = (KL <<<  94) >> 64;
+
+	bit_cyclic_lshift(&end_round_key[19], KL, 94, 128); // (KL <<<  94)
+	bit_and(&end_round_key[19], end_round_key[19], MASK64, 128); // k14 = (KL <<<  94) & MASK64;
+
+	bit_cyclic_lshift(&end_round_key[20], KA, 94, 128); // (KA <<<  94)
+	gcry_mpi_rshift(end_round_key[20], end_round_key[20], 64); // k15 = (KA <<<  94) >> 64;
+
+	bit_cyclic_lshift(&end_round_key[21], KA, 94, 128); // (KA <<<  94)
+	bit_and(&end_round_key[21], end_round_key[21], MASK64, 128); // k16 = (KA <<<  94) & MASK64;
+
+	bit_cyclic_lshift(&end_round_key[22], KL, 111, 128); // (KL <<< 111)
+	gcry_mpi_rshift(end_round_key[22], end_round_key[22], 64); // k17 = (KL <<< 111) >> 64;
+
+	bit_cyclic_lshift(&end_round_key[23], KL, 111, 128); // (KL <<< 111)
+	bit_and(&end_round_key[23], end_round_key[23], MASK64, 128); // k18 = (KL <<< 111) & MASK64;
+
+	bit_cyclic_lshift(&end_round_key[24], KA, 111, 128); // (KA <<< 111)
+	gcry_mpi_rshift(end_round_key[24], end_round_key[24], 64); // kw3 = (KA <<< 111) >> 64;
+
+	bit_cyclic_lshift(&end_round_key[25], KA, 111, 128); // (KA <<< 111)
+	bit_and(&end_round_key[25], end_round_key[25], MASK64, 128); // kw4 = (KA <<< 111) & MASK64;
 
 
-
-
-	//(KA <<<   0)
-
-
-
-
-
-
-	// void bit_cyclic_lshift(gcry_mpi_t *result, const unsigned int l_bits, const unsigned int num_of_bits)
-
-
-
-
-
-
-
-
-
-
-
-	printf("\n");
-	gcry_mpi_dump(KA);
-	printf("\n");
-
-
-
-// D2 = D2 ^ (KL & MASK64);
-// void bit_and(gcry_mpi_t *result, const gcry_mpi_t a, const gcry_mpi_t b, const unsigned int num_of_bits) // да 
-// void bit_lshift(gcry_mpi_t *result, const gcry_mpi_t a, const unsigned int l_bits, const unsigned int num_of_bits)
-// bit_or(&x, x, y[3], 64);
-
-
-
-
-	// gcry_mpi_dump(D2);
-
-
-
+	// printf("\n");
+	// gcry_mpi_dump(KA);
+	// printf("\n");
 
 	for(int i=0; i<6; i++)
 	{
@@ -484,3 +523,10 @@ void round_key(gcry_mpi_t key, gcry_mpi_t end_round_key[])
 
 }
 
+
+void camellia_encryption(gcry_mpi_t *encypted_tex, gcry_mpi_t subkeys[])
+{
+
+
+
+}

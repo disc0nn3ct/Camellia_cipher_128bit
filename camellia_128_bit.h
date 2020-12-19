@@ -24,7 +24,7 @@ void bit_and(gcry_mpi_t *result,const gcry_mpi_t a,const gcry_mpi_t b,const unsi
 void bit_lshift(gcry_mpi_t *result, const gcry_mpi_t a, const unsigned int l_bits, const unsigned int num_of_bits);
 
 
-void bit_cyclic_lshift(gcry_mpi_t *result, const unsigned int l_bits, const unsigned int num_of_bits);
+void bit_cyclic_lshift(gcry_mpi_t *result, gcry_mpi_t in,const unsigned int l_bits, const unsigned int num_of_bits);
 
 
 int Power(int base, int pow);

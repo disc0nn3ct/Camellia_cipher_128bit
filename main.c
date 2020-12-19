@@ -113,12 +113,14 @@ for(int i=0; i<26; i++)
 
 
 
+round_key(key_1_128, keys_for_round);
 
 
-
-	round_key(key_1_128, keys_for_round);
-
-
+for(int i=0; i <26; i++)
+{
+	printf("\n");
+	gcry_mpi_dump(keys_for_round[i]);
+}
 
 	return 0; 
 }

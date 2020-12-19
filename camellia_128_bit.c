@@ -363,7 +363,7 @@ gcry_mpi_release(MASK8);
 
 
 
-void round_key(gcry_mpi_t key)
+void round_key(gcry_mpi_t key, gcry_mpi_t end_round_key[])
 {
 	// const long long SIGMA[6] =
 	// {
@@ -390,7 +390,6 @@ void round_key(gcry_mpi_t key)
 	gcry_mpi_scan(&SIGMA[3], GCRYMPI_FMT_HEX, "54FF53A5F1D36F1C", 0, 0);
 	gcry_mpi_scan(&SIGMA[4], GCRYMPI_FMT_HEX, "10E527FADE682D1D", 0, 0);
 	gcry_mpi_scan(&SIGMA[5], GCRYMPI_FMT_HEX, "B05688C2B3E6C1FD", 0, 0);
-
 
 
 	KL = gcry_mpi_copy(key);
@@ -420,7 +419,29 @@ void round_key(gcry_mpi_t key)
 
 	// теперь подключи
 
-	
+	bit_cyclic_lshift(&end_round_key[0], KL, 0, 64); // (KL <<<  0)
+	gcry_mpi_rshift(end_round_key[0], end_round_key[0],64); // kw1 = (KL <<<   0) >> 64;
+
+	bit_cyclic_lshift(&end_round_key[1], KL, 0, 64); // (KL <<<  0)
+	bit_and(&end_round_key[1], end_round_key[1], MASK64, 64); // kw2 = (KL <<<   0) & MASK64;
+
+	bit_cyclic_lshift(&end_round_key[2], KA, 0, 64); // (KA <<<  0)
+	gcry_mpi_rshift(end_round_key[2], end_round_key[2], 64); // k1  = (KA <<<   0) >> 64;
+
+
+
+
+
+	//(KA <<<   0)
+
+
+
+
+
+
+	// void bit_cyclic_lshift(gcry_mpi_t *result, const unsigned int l_bits, const unsigned int num_of_bits)
+
+
 
 
 

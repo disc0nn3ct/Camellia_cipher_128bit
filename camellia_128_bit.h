@@ -43,7 +43,7 @@ void SBOX2(gcry_mpi_t *result, gcry_mpi_t num);
 void F_camellia(gcry_mpi_t *result, gcry_mpi_t F_IN, gcry_mpi_t KE);
 
 
-void round_key(gcry_mpi_t key);
+void round_key(gcry_mpi_t key, gcry_mpi_t end_key[]);
 
 
 

@@ -115,12 +115,19 @@ for(int i=0; i<26; i++)
 
 round_key(key_1_128, keys_for_round);
 
-printf("IIIIIIIIIIIIiiiiiiiiiiiiiiiiii\n");
-for(int i=0; i <26; i++)
-{
-	gcry_mpi_dump(keys_for_round[i]);
-	printf("\n");
-}
+// printf("IIIIIIIIIIIIiiiiiiiiiiiiiiiiii\n");
+// for(int i=0; i <26; i++)
+// {
+// 	gcry_mpi_dump(keys_for_round[i]);
+// 	printf("\n");
+// }
+
+gcry_mpi_t test_chip = gcry_mpi_new(0);
+
+camellia_encryption(&test_chip, Plaintext_1_128,  keys_for_round);
+
+
+
 
 for(int i=0; i <26; i++)
 {

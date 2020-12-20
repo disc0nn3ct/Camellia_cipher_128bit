@@ -372,10 +372,6 @@ gcry_mpi_release(MASK8);
 
 void round_key(gcry_mpi_t key, gcry_mpi_t end_round_key[])
 {
-	// const long long SIGMA[6] =
-	// {
-	// 	0xA09E667F3BCC908B, 0xB67AE8584CAA73B2, 0xC6EF372FE94F82BE, 0x54FF53A5F1D36F1C, 0x10E527FADE682D1D, 0xB05688C2B3E6C1FD
-	// };
 	gcry_mpi_t buf1 = gcry_mpi_new(0);	
 
 	gcry_mpi_t KL = gcry_mpi_new(0);	
@@ -424,7 +420,7 @@ void round_key(gcry_mpi_t key, gcry_mpi_t end_round_key[])
 	bit_lshift(&buf1, D1, 64, 128); // (D1 << 64)
 	bit_or(&KA, buf1, D2, 128); // KA = (D1 << 64) | D2;
 
-	// теперь подключи
+	// теперь раундовые ключи 
 
 	bit_cyclic_lshift(&end_round_key[0], KL, 0, 64); // (KL <<<  0)
 	gcry_mpi_rshift(end_round_key[0], end_round_key[0], 64); // kw1 = (KL <<<   0) >> 64;
@@ -445,30 +441,30 @@ void round_key(gcry_mpi_t key, gcry_mpi_t end_round_key[])
 	bit_and(&end_round_key[5], end_round_key[5], MASK64, 128); // k4  = (KL <<<  15) & MASK64;
 
 	bit_cyclic_lshift(&end_round_key[6], KA, 15, 128); // (KA <<<  15)
-    gcry_mpi_rshift(end_round_key[6], end_round_key[6], 64); // k5  = (KA <<<  15) >> 64;
+	gcry_mpi_rshift(end_round_key[6], end_round_key[6], 64); // k5  = (KA <<<  15) >> 64;
 
-    bit_cyclic_lshift(&end_round_key[7], KA, 15, 128); // (KA <<<  15)
-    bit_and(&end_round_key[7], end_round_key[7], MASK64, 128); //  k6  = (KA <<<  15) & MASK64;
+	bit_cyclic_lshift(&end_round_key[7], KA, 15, 128); // (KA <<<  15)
+	bit_and(&end_round_key[7], end_round_key[7], MASK64, 128); //  k6  = (KA <<<  15) & MASK64;
 
-    bit_cyclic_lshift(&end_round_key[8], KA, 30, 128); // (KA <<<  30)
-    gcry_mpi_rshift(end_round_key[8], end_round_key[8], 64); //  ke1 = (KA <<<  30) >> 64;
+	bit_cyclic_lshift(&end_round_key[8], KA, 30, 128); // (KA <<<  30)
+	gcry_mpi_rshift(end_round_key[8], end_round_key[8], 64); //  ke1 = (KA <<<  30) >> 64;
 
-    bit_cyclic_lshift(&end_round_key[9], KA, 30, 128); // (KA <<<  30)
-    bit_and(&end_round_key[9], end_round_key[9], MASK64, 128); //  ke2 = (KA <<<  30) & MASK64;
+	bit_cyclic_lshift(&end_round_key[9], KA, 30, 128); // (KA <<<  30)
+	bit_and(&end_round_key[9], end_round_key[9], MASK64, 128); //  ke2 = (KA <<<  30) & MASK64;
 
-    bit_cyclic_lshift(&end_round_key[10], KL, 45, 128); // (KL <<<  45)
-    gcry_mpi_rshift(end_round_key[10], end_round_key[10], 64); //  k7  = (KL <<<  45) >> 64;
+	bit_cyclic_lshift(&end_round_key[10], KL, 45, 128); // (KL <<<  45)
+	gcry_mpi_rshift(end_round_key[10], end_round_key[10], 64); //  k7  = (KL <<<  45) >> 64;
 
-    bit_cyclic_lshift(&end_round_key[11], KL, 45, 128);         // (KL <<<  45)
-    bit_and(&end_round_key[11], end_round_key[11], MASK64, 128); //  k8  = (KL <<<  45) & MASK64;
+	bit_cyclic_lshift(&end_round_key[11], KL, 45, 128);         // (KL <<<  45)
+	bit_and(&end_round_key[11], end_round_key[11], MASK64, 128); //  k8  = (KL <<<  45) & MASK64;
 
-    bit_cyclic_lshift(&end_round_key[12], KA, 45, 128); // (KA <<<  45)
-    gcry_mpi_rshift(end_round_key[12], end_round_key[12], 64); // k9  = (KA <<<  45) >> 64;
+	bit_cyclic_lshift(&end_round_key[12], KA, 45, 128); // (KA <<<  45)
+	gcry_mpi_rshift(end_round_key[12], end_round_key[12], 64); // k9  = (KA <<<  45) >> 64;
 
-    bit_cyclic_lshift(&end_round_key[13], KL, 60, 128); // (KL <<<  60)
-    bit_and(&end_round_key[13], end_round_key[13], MASK64, 64); // k10 = (KL <<<  60) & MASK64;
+	bit_cyclic_lshift(&end_round_key[13], KL, 60, 128); // (KL <<<  60)
+	bit_and(&end_round_key[13], end_round_key[13], MASK64, 64); // k10 = (KL <<<  60) & MASK64;
 
-    bit_cyclic_lshift(&end_round_key[14], KA, 60, 128); // (KA <<<  60)
+	bit_cyclic_lshift(&end_round_key[14], KA, 60, 128); // (KA <<<  60)
 	gcry_mpi_rshift(end_round_key[14], end_round_key[14], 64); // k11 = (KA <<<  60) >> 64;
 
 	bit_cyclic_lshift(&end_round_key[15], KA, 60, 128); // (KA <<<  60)
@@ -523,10 +519,162 @@ void round_key(gcry_mpi_t key, gcry_mpi_t end_round_key[])
 
 }
 
-
-void camellia_encryption(gcry_mpi_t *encypted_tex, gcry_mpi_t subkeys[])
+void FL(gcry_mpi_t *result, gcry_mpi_t FL_IN, gcry_mpi_t KE)
 {
+	if(gcry_mpi_get_nbits(FL_IN) > 64 || gcry_mpi_get_nbits(KE) > 64)
+	{
+		perror("TO BIG FL_IN or KE in Fl funktion ");
+	}
+	gcry_mpi_t x1, x2, k1, k2, MASK32, buf1;
+	x1 = gcry_mpi_new(0);
+	x2 = gcry_mpi_new(0);
+	k1 = gcry_mpi_new(0);
+	k2 = gcry_mpi_new(0);
+	buf1 = gcry_mpi_new(0);
+	MASK32 = gcry_mpi_new(0);
+	gcry_mpi_scan(&MASK32, GCRYMPI_FMT_HEX, "ffffffff", 0, 0);
+
+
+	gcry_mpi_rshift(x1, FL_IN, 32); 	// x1 = FL_IN >> 32;
+	bit_and(&x2, FL_IN, MASK32, 32); // x2 = FL_IN & MASK32;
+	gcry_mpi_rshift(k1, KE, 32); 		// k1 = KE >> 32;
+	bit_and(&k2, KE, MASK32, 32); 		// k2 = KE & MASK32;
+	bit_and(&buf1, x1, k1, 32); 		// (x1 & k1)
+	bit_cyclic_lshift(&buf1, buf1, 1, 32); // ((x1 & k1) <<< 1);
+	bit_xor(&x2, x2, buf1, 32); // x2 = x2 ^ ((x1 & k1) <<< 1);
+
+	bit_or(&buf1, x1, k1, 32); // (x2 | k2)
+	bit_xor(&x1, x1, buf1, 32); // x1 = x1 ^ (x2 | k2);
+
+	bit_lshift(&buf1, x1, 32, 32); //(x1 << 32)
+	bit_or(result, buf1, x2, 32);  // FL_OUT = (x1 << 32) | x2;
+
+	gcry_mpi_release(x1);
+	gcry_mpi_release(x2);
+	gcry_mpi_release(k1);
+	gcry_mpi_release(k2);
+	gcry_mpi_release(MASK32);
+	gcry_mpi_release(buf1);
+}
+
+
+// это обратная функция FL
+void FLINV(gcry_mpi_t *result, gcry_mpi_t FLINV_IN, gcry_mpi_t KE)
+{
+	if(gcry_mpi_get_nbits(FLINV_IN) > 64 || gcry_mpi_get_nbits(KE) > 64)
+	{
+		perror("TO BIG FL_IN or KE in FLINV funktion ");
+	}
+	gcry_mpi_t y1, y2, k1, k2, MASK32, buf1;
+	y1 = gcry_mpi_new(0);
+	y2 = gcry_mpi_new(0);
+	k1 = gcry_mpi_new(0);
+	k2 = gcry_mpi_new(0);
+	buf1 = gcry_mpi_new(0);
+	MASK32 = gcry_mpi_new(0);
+	gcry_mpi_scan(&MASK32, GCRYMPI_FMT_HEX, "ffffffff", 0, 0);
+
+	gcry_mpi_rshift(y1, FLINV_IN, 32); 	//  y1 = FLINV_IN >> 32;
+	bit_and(&y2, FLINV_IN, MASK32, 32); // y2 = FLINV_IN & MASK32;
+	gcry_mpi_rshift(k1, KE, 32); // k1 = KE >> 32;
+    bit_and(&k2, KE, MASK32, 32); // k2 = KE & MASK32;
+ 	bit_or(&buf1, y2, k2, 32);   // (y2 | k2)
+    bit_xor(&y1, y1, buf1, 32);  // y1 = y1 ^ (y2 | k2);
+    bit_and(&buf1, y1, k1, 32); // (y1 & k1)
+    bit_cyclic_lshift(&buf1, buf1, 1, 32); //  (y1 & k1) <<< 1
+    bit_xor(&y2, y2, buf1, 32);  // y2 = y2 ^ ((y1 & k1) <<< 1);	
+    bit_lshift(&buf1, y1, 32, 32); // (y1 << 32)
+    bit_or(result, buf1, y2, 32); // result = (y1 << 32) | y2;
+
+
+	gcry_mpi_release(y1);
+	gcry_mpi_release(y2);
+	gcry_mpi_release(k1);
+	gcry_mpi_release(k2);
+	gcry_mpi_release(MASK32);
+	gcry_mpi_release(buf1);
+
+}
 
 
 
+
+
+void camellia_encryption(gcry_mpi_t *encypted_tex,const gcry_mpi_t M, const gcry_mpi_t subkeys[])
+{
+	gcry_mpi_t D1, D2, buf1, MASK64;
+	D1 = gcry_mpi_new(0);
+	D2 = gcry_mpi_new(0);
+	buf1 = gcry_mpi_new(0);
+	MASK64 = gcry_mpi_new(0);
+	gcry_mpi_scan(&MASK64, GCRYMPI_FMT_HEX, "ffffffffffffffff", 0, 0);
+
+	gcry_mpi_rshift(D1, M, 64); // D1 = M >> 64; это будет Левая часть
+	bit_and(&D2, M, MASK64, 64); // D2 = M & MASK64; Это будет Правая часть 
+
+
+	bit_xor(&D1, D1, subkeys[0], 64); // !!! предварительное отбеливание !!! D1 = D1 ^ kw1;
+	bit_xor(&D2, D2, subkeys[1], 64);  // D2 = D2 ^ kw2;
+	F_camellia(&buf1, D1, subkeys[2]); 	  
+	bit_xor(&D2, D2, buf1, 64); // D2 = D2 ^ F(D1, k1);     // Раунд 1
+	F_camellia(&buf1, D1, subkeys[3]);
+	bit_xor(&D1, D1, buf1, 64); // D1 = D1 ^ F(D2, k2);     // Раунд 2
+	F_camellia(&buf1, D2, subkeys[4]); 
+	bit_xor(&D2, D2, buf1, 64); // D2 = D2 ^ F(D1, k3);     // Раунд 3
+	F_camellia(&buf1, D1, subkeys[5]);
+	bit_xor(&D1, D1, buf1, 64);// D1 = D1 ^ F(D2, k4);     // Раунд 4
+	F_camellia(&buf1, D1, subkeys[6]);	
+	bit_xor(&D2, D2, buf1, 64);// D2 = D2 ^ F(D1, k5);     // Раунд 5
+	F_camellia(&buf1, D2, subkeys[7]); 
+	bit_xor(&D1, D1, buf1, 64); // D1 = D1 ^ F(D2, k6);     // Раунд 6
+	
+
+	printf("==================\n");
+	gcry_mpi_dump(D1);
+	printf("==================\n");
+
+
+
+
+
+	FL(&D1, D1, subkeys[8]); // D1 = FL   (D1, ke1);     // FL    
+	FLINV(&D2, D2, subkeys[9]); // D2 = FLINV(D2, ke2);     // FLINV
+
+
+
+
+
+
+	// D2 = D2 ^ F(D1, k7);     // Раунд 7
+	// D1 = D1 ^ F(D2, k8);     // Раунд 8
+	// D2 = D2 ^ F(D1, k9);     // Раунд 9
+	// D1 = D1 ^ F(D2, k10);    // Раунд 10
+	// D2 = D2 ^ F(D1, k11);    // Раунд 11
+	// D1 = D1 ^ F(D2, k12);    // Раунд 12
+	// D1 = FL   (D1, ke3);     // FL
+	// D2 = FLINV(D2, ke4);     // FLINV
+	// D2 = D2 ^ F(D1, k13);    // Раунд 13
+	// D1 = D1 ^ F(D2, k14);    // Раунд 14
+	// D2 = D2 ^ F(D1, k15);    // Раунд 15
+	// D1 = D1 ^ F(D2, k16);    // Раунд 16
+	// D2 = D2 ^ F(D1, k17);    // Раунд 17
+	// D1 = D1 ^ F(D2, k18);    // Раунд 18
+	// D1 = FL   (D1, ke5);     // FL
+	// D2 = FLINV(D2, ke6);     // FLINV
+	// D2 = D2 ^ F(D1, k19);    // Раунд 19
+	// D1 = D1 ^ F(D2, k20);    // Раунд 20
+	// D2 = D2 ^ F(D1, k21);    // Раунд 21
+	// D1 = D1 ^ F(D2, k22);    // Раунд 22
+	// D2 = D2 ^ F(D1, k23);    // Раунд 23
+	// D1 = D1 ^ F(D2, k24);    // Раунд 24
+	// D2 = D2 ^ kw3;           // Постотбеливание 
+	// D1 = D1 ^ kw4;
+
+	// C = (D2 << 64) | D1; состоит из 128 бит ;D 
+
+
+	gcry_mpi_release(D1);
+	gcry_mpi_release(D2);
+	gcry_mpi_release(buf1);
+	gcry_mpi_release(MASK64);
 }

@@ -39,12 +39,19 @@ void SBOX1(gcry_mpi_t *result, gcry_mpi_t num);
 void SBOX2(gcry_mpi_t *result, gcry_mpi_t num);
 
 
-
 void F_camellia(gcry_mpi_t *result, gcry_mpi_t F_IN, gcry_mpi_t KE);
 
 
 void round_key(gcry_mpi_t key, gcry_mpi_t end_key[]);
 
+
+void FL(gcry_mpi_t *result, gcry_mpi_t FL_IN, gcry_mpi_t KE);
+
+
+void FLINV(gcry_mpi_t *result, gcry_mpi_t FLINV_IN, gcry_mpi_t KE);
+
+
+void camellia_encryption(gcry_mpi_t *encypted_tex, const gcry_mpi_t M, const gcry_mpi_t subkeys[]);
 
 
 

@@ -692,10 +692,44 @@ void camellia_encryption(gcry_mpi_t *encypted_tex,const gcry_mpi_t M, const gcry
 }
 
 
-
+// для расшифрования надо только поменять некоторые раундовые ключи местами => 
 void camellia_decryption(gcry_mpi_t *text, const gcry_mpi_t M, const gcry_mpi_t subkeys[])
 {
+	gcry_mpi_t for_decryption[26];
+	// gcry_mpi_t buf1;
+	// buf1 = gcry_mpi_new(0);
+	
+	for(int i = 0; i < 26; i++)
+	{
+		for_decryption[i] = gcry_mpi_new(0);
+		for_decryption[i] = gcry_mpi_copy(subkeys[i]);
+	}
+	gcry_mpi_swap(for_decryption[0], for_decryption[24]);
+	gcry_mpi_swap(for_decryption[1], for_decryption[25]);
+	gcry_mpi_swap(for_decryption[2], for_decryption[23]);
+	gcry_mpi_swap(for_decryption[3], for_decryption[22]);
+	gcry_mpi_swap(for_decryption[4], for_decryption[21]);
+	gcry_mpi_swap(for_decryption[5], for_decryption[20]);
+	gcry_mpi_swap(for_decryption[6], for_decryption[19]);
+	gcry_mpi_swap(for_decryption[7], for_decryption[18]);
+	gcry_mpi_swap(for_decryption[8], for_decryption[17]);
+	gcry_mpi_swap(for_decryption[9], for_decryption[16]);
+	gcry_mpi_swap(for_decryption[10], for_decryption[15]);
+	gcry_mpi_swap(for_decryption[11], for_decryption[14]);
+	gcry_mpi_swap(for_decryption[12], for_decryption[13]);
+
+
+	camellia_encryption(text, M, for_decryption);
+
+	ma_printf(*text);
 
 
 
+
+
+	for(int i = 0; i < 26; i++)
+	{
+		gcry_mpi_release(for_decryption[i]);
+	}
+	// gcry_mpi_release(buf1);
 }

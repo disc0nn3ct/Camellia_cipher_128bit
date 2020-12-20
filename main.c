@@ -128,6 +128,9 @@ camellia_encryption(&test_chip, Plaintext_1_128,  keys_for_round);
 
 
 
+camellia_decryption( &a, test_chip,  keys_for_round);
+
+
 
 for(int i=0; i <26; i++)
 {

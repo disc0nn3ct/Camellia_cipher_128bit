@@ -53,6 +53,7 @@ void FLINV(gcry_mpi_t *result, gcry_mpi_t FLINV_IN, gcry_mpi_t KE);
 
 void camellia_encryption(gcry_mpi_t *encypted_tex, const gcry_mpi_t M, const gcry_mpi_t subkeys[]);
 
+void camellia_decryption(gcry_mpi_t *text, const gcry_mpi_t M, const gcry_mpi_t subkeys[]);
 
 
 #endif 

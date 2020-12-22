@@ -102,38 +102,14 @@ if(l_bits != 0 )
 	a = gcry_mpi_copy(in);
 	b = gcry_mpi_copy(in);
 
-
-	// printf("old??? \n");
-	// bit_printf(*result, num_of_bits);
-	// gcry_mpi_lshift(a, a, l_bits); // поменять с обрезкой больше 128 например 
 	bit_lshift(&a, a, l_bits, num_of_bits);
-	// printf("\na \n");
-	// bit_printf(a, num_of_bits);
-	
-	// printf("\nb \n");
-	// bit_printf(b, num_of_bit);
 	
 	gcry_mpi_rshift(b, b, (num_of_bits - l_bits)); // поменять с обрезкой больше 128 например
 	
-
-	// printf("\n bb \n");
-	// bit_printf(b, num_of_bits);
-	
-
 	bit_or(&a, a, b, num_of_bits);
 	*result = gcry_mpi_copy(a);
-	// printf("a new \n");
-	// bit_printf(a, num_of_bits);
-
-	// printf(" a дап даст ");
-	// gcry_mpi_dump(*result);
-
-
-
+	
 ////////////////////////////////////////////////////
-
-	// *result = a << offset | a >> (32 - offset);
-	// gcry_mpi_rshift
 
 	gcry_mpi_release(a);
 	gcry_mpi_release(b);
@@ -199,9 +175,6 @@ void SBOX1(gcry_mpi_t *result, gcry_mpi_t num)
 // SBOX2[x] = SBOX1[x] <<< 1;
 void SBOX2(gcry_mpi_t *result, gcry_mpi_t num)
 {
-	// printf("<<<<<<<<<<<<\n");
-	// gcry_mpi_dump(num);
-	// printf("\n>>>>>>>>>>>>\n");
 	SBOX1(result, num); 
 
 	// gcry_mpi_dump(*result);
@@ -234,10 +207,7 @@ if((gcry_mpi_get_nbits(F_IN) > 64) || (gcry_mpi_get_nbits(KE) > 64))
 {
 	perror("F_IN or KE to big : ");
 }
-// if(gcry_mpi_get_nbits(F_IN) == 0)
-// {
-// 	printf("FFFFFFFFFFFFFFFFFFFFFFFFFFFF\n");
-// }
+
 
 gcry_mpi_t x;
 gcry_mpi_t MASK8;
@@ -378,9 +348,22 @@ void ma_printf(gcry_mpi_t m)
 }
 
 
+void delete_round_keys(gcry_mpi_t subkeys[])
+{
+	for(int i = 0; i < 26; i++)
+	{
+		gcry_mpi_release(subkeys[i]);
+	}
+}
 
 void round_key(gcry_mpi_t key, gcry_mpi_t end_round_key[])
 {
+
+	
+	for(int i=0; i<26; i++)
+	{
+		end_round_key[i] = gcry_mpi_new(0);
+	}
 	gcry_mpi_t buf1 = gcry_mpi_new(0);	
 
 	gcry_mpi_t KL = gcry_mpi_new(0);	
@@ -509,10 +492,6 @@ void round_key(gcry_mpi_t key, gcry_mpi_t end_round_key[])
 	bit_cyclic_lshift(&end_round_key[25], KA, 111, 128); // (KA <<< 111)
 	bit_and(&end_round_key[25], end_round_key[25], MASK64, 128); // kw4 = (KA <<< 111) & MASK64;
 
-
-	// printf("\n");
-	// gcry_mpi_dump(KA);
-	// printf("\n");
 
 	for(int i=0; i<6; i++)
 	{
@@ -721,15 +700,7 @@ void camellia_decryption(gcry_mpi_t *text, const gcry_mpi_t M, const gcry_mpi_t 
 
 	camellia_encryption(text, M, for_decryption);
 
-	ma_printf(*text);
+	delete_round_keys(for_decryption);
 
-
-
-
-
-	for(int i = 0; i < 26; i++)
-	{
-		gcry_mpi_release(for_decryption[i]);
-	}
-	// gcry_mpi_release(buf1);
 }
+

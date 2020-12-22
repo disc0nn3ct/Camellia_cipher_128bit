@@ -12,5 +12,5 @@ make
 
 Пример: 
 
-![example](example_of_test.png)
+![example](src/example_of_test.png)
 

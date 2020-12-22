@@ -10,6 +10,11 @@
 make
 ```
 
+Встроился: 
+
+[libgcrypt](https://github.com/disc0nn3ct/libgcrypt)
+
+
 Пример: 
 
 ![example](src/example_of_test.png)
